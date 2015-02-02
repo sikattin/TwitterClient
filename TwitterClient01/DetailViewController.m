@@ -30,10 +30,11 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor darkGrayColor];
-    self.navigationItem.title = @"Detail view";
+    self.navigationItem.title = @"Tweet";
     self.imageview.image = self.image;
     self.nameview.text = self.name;
     self.textview.text = self.text;
+    self.popup.textColor = [UIColor redColor];
     
 }
 
@@ -56,7 +57,7 @@
     ACAccount *account = [accountStore accountWithIdentifier:self.identifier];
     
     NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"https://api.twitter.com/1.1/statuses/retweet/%@.json", self.idStr]];
-    SLRequest *request = [SLRequest requestForServiceType:SLServiceTypeTwitter requestMethod:SLRequestMethodPOST URL:url parameters:nil]; //今回はurlにidstrを含めるので不要
+    SLRequest *request = [SLRequest requestForServiceType:SLServiceTypeTwitter requestMethod:SLRequestMethodPOST URL:url parameters:nil]; //urlにidstrを含めるので不要
     
     request.account = account;
     
@@ -69,22 +70,31 @@
             if(urlResponse.statusCode >=200 && urlResponse.statusCode <300) {
                 NSDictionary *postResponseData =
                 [NSJSONSerialization JSONObjectWithData:responseData options:NSJSONReadingMutableContainers error:NULL];
-                self.popup.text = @"Success";
                 NSLog(@"SUCCESS! Created Retweet with ID: %@", postResponseData[@"id_str"]);
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    self.popup.text = @"Success";
+                });
             } else { //HTTPエラー発生時
                 self.httpErrorMessage = [NSString stringWithFormat:@"The response status code is %ld", (long)urlResponse.statusCode];
                 NSLog(@"HTTPError: %@",self.httpErrorMessage);
-                //リツイート時のHッTPエラーメッセイジを画面に表示する領域がない　作る
-            }
-        } else { //リクエスト送信エラー発生時
+                //リツイート時のHTTPエラーメッセイジを画面に表示する領域を作る
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    self.popup.text = @"Failed";
+                });
+            } /*else {
             NSLog(@"ERROR! : An error occurred while position: %@", [error localizedDescription]);
-            //リクエスト時の送信エラーメッセージを画面に表示する領域がない。作る。
-        }
-        dispatch_async(dispatch_get_main_queue(), ^{
+            //リクエスト時の送信エラーメッセージを画面に表示する領域を作る。
+            }*/
+            dispatch_async(dispatch_get_main_queue(), ^{
             UIApplication *application = [UIApplication sharedApplication];
             application.networkActivityIndicatorVisible = NO;
-        });
-    }];
+            self.popup.textColor = [UIColor redColor];
+            self.popup.text = @"Success";
+            });
+    };
+}];
+
 }
 
 @end
+
