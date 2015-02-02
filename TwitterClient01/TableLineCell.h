@@ -12,9 +12,11 @@
 
 @property UILabel *tweetTextLabel;
 @property UILabel *nameLabel;
-@property UIImageView *profileImageView;
+@property UIImageView *profileImageView; // imageを貼り付ける
 @property int tweetTextLabelHeight;
-@property UIImage *image;
+@property UIImage *image; // 画像そのもの
+@property int paddingTop;
+@property int paddingBottom;
 
 
 @end

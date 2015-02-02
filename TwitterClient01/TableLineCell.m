@@ -10,19 +10,25 @@
 
 @implementation TableLineCell
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier // Cellの再利用
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
-    if (self) {
-    _tweetTextLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    _tweetTextLabel.font = [UIFont systemFontOfSize:14];
-    _tweetTextLabel.textColor = [UIColor blackColor];
+    if (self) /*初期化がうまくいったら*/{
+        _paddingTop = 5;
+        _paddingBottom = 5;
+    _tweetTextLabel = [[UILabel alloc] initWithFrame:CGRectZero]; //大きさはlayoutSubviewsで設定する
+        //_tweetTextLabel.backgroundColor = [UIColor blackColor];
+    _tweetTextLabel.font = [UIFont systemFontOfSize:14.0f];
+    _tweetTextLabel.textColor = [UIColor redColor];
+        //_tweetTextLabel.highlightedTextColor = [UIColor blackColor];
     _tweetTextLabel.numberOfLines = 0;
     [self.contentView addSubview:_tweetTextLabel];
     
     _nameLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    _nameLabel.font = [UIFont systemFontOfSize:12];
-    _nameLabel.textColor = [UIColor blackColor];
+       // _nameLabel.backgroundColor = [UIColor blackColor];
+    _nameLabel.font = [UIFont systemFontOfSize:10.0f];
+    _nameLabel.textColor = [UIColor lightGrayColor];
+    //_nameLabel.highlightedTextColor = [UIColor blackColor];
     [self.contentView addSubview:_nameLabel];
     
     _profileImageView = [[UIImageView alloc] initWithFrame:CGRectZero];
@@ -37,9 +43,9 @@
 {
     [super layoutSubviews];
     
-    self.profileImageView.frame = CGRectMake(5, 5, 48, 48);
-    self.tweetTextLabel.frame = CGRectMake(58, 5, 257, self.tweetTextLabelHeight);
-    self.nameLabel.frame = CGRectMake(58, self.tweetTextLabelHeight + 15, 257, 15);
+    self.profileImageView.frame = CGRectMake(5, self.paddingTop, 48, 48); //(x, y, width, height)
+    self.tweetTextLabel.frame = CGRectMake(58, 20, 300, self.tweetTextLabelHeight);
+    self.nameLabel.frame = CGRectMake(58, self.paddingTop, 257, 10); // つぶやきの文字数によって行数が可変、高さが変わるためy座標をtweettextlabelheightで設定
 }
 
 - (void)awakeFromNib {

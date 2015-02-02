@@ -22,6 +22,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
+    self.view.backgroundColor = [UIColor lightGrayColor];
     self.accountStore = [[ACAccountStore alloc] init];
     ACAccountType *twitterType =
     [self.accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
@@ -78,14 +79,14 @@
         [sheet addButtonWithTitle:account.username];
     }
     [sheet addButtonWithTitle:@"キャンセル"];
-    sheet.cancelButtonIndex = self.twitterAccounts.count; //アカウントの数が最後のボタンのIndex
+    sheet.cancelButtonIndex = self.twitterAccounts.count; //アカウントの数が最後のボタンのIndex(account数が２個ならばキャンセルボタンは３番目）
     [sheet showInView:self.view]; //viewにアクションシートを挿入
     
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex { // タップしたボタンは何番目かがbuttonIndexに数字として入る（一番上なら0二番目なら１、３番目なら２といったように
     if (self.twitterAccounts.count > 0) { //アカウントが１つ以上あれば
-        if (buttonIndex != self.twitterAccounts.count) { //キャンセルボタンのindexでなければ
+        if (buttonIndex != self.twitterAccounts.count) { //キャンセルボタンのindexでなければ...キャンセルがタップされてない場合
             ACAccount *account = self.twitterAccounts[buttonIndex]; //ボタンのindexのアカウント　あとで使うために
             self.identifier = account.identifier; //identifierをセット　あとで使う
             self.accountDisplayLabel.text = account.username; //すぐに表示される

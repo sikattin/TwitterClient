@@ -9,10 +9,17 @@
 #import "DetailViewController.h"
 
 @interface DetailViewController ()
-@property (weak, nonatomic) IBOutlet UIImageView *profileImageView;
-@property (weak, nonatomic) IBOutlet UITextView *nameView;
-@property (weak, nonatomic) IBOutlet UITextView *textView;
+
 @property NSString *httpErrorMessage;
+@property (weak, nonatomic) IBOutlet UIImageView *imageview;
+@property (unsafe_unretained, nonatomic) IBOutlet UILabel *nameview;
+@property (weak, nonatomic) IBOutlet UITextView *textview;
+@property (weak, nonatomic) IBOutlet UILabel *popup;
+
+
+
+
+
 
 
 @end
@@ -22,10 +29,12 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    self.navigationItem.title = @"Detail View";
-    self.profileImageView.image = self.image;
-    self.nameView.text = self.name;
-    self.textView.text = self.text;
+    self.view.backgroundColor = [UIColor darkGrayColor];
+    self.navigationItem.title = @"Detail view";
+    self.imageview.image = self.image;
+    self.nameview.text = self.name;
+    self.textview.text = self.text;
+    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -60,9 +69,10 @@
             if(urlResponse.statusCode >=200 && urlResponse.statusCode <300) {
                 NSDictionary *postResponseData =
                 [NSJSONSerialization JSONObjectWithData:responseData options:NSJSONReadingMutableContainers error:NULL];
+                self.popup.text = @"Success";
                 NSLog(@"SUCCESS! Created Retweet with ID: %@", postResponseData[@"id_str"]);
             } else { //HTTPエラー発生時
-                self.httpErrorMessage = [NSString stringWithFormat:@"The response status code is %d", urlResponse.statusCode];
+                self.httpErrorMessage = [NSString stringWithFormat:@"The response status code is %ld", (long)urlResponse.statusCode];
                 NSLog(@"HTTPError: %@",self.httpErrorMessage);
                 //リツイート時のHッTPエラーメッセイジを画面に表示する領域がない　作る
             }

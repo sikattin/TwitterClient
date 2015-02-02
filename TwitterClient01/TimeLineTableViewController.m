@@ -59,7 +59,7 @@
             self.httpErrorMessage = nil;
             if(urlResponse.statusCode >= 200 && urlResponse.statusCode < 300) {
                 NSError *jsonError;
-                self.timeLineData =     //複数兼のNSDictionaryが返される
+                self.timeLineData =     //複数件のNSDictionaryが返される
                 [NSJSONSerialization JSONObjectWithData:responseData options:NSJSONReadingAllowFragments error:&jsonError];
                 if (self.timeLineData) {
                     NSLog(@"Timeline Response: %@\n", self.timeLineData);
@@ -94,6 +94,8 @@
     // フォントを指定
     UIFont * font = [UIFont fontWithName:@"HiraKakuProN-W3" size:13];
     
+    
+    
     //カスタムLineHeightを指定
     CGFloat customLineHeight = 19.5f;
     
@@ -112,6 +114,14 @@
     return attributedText;
 }
 
+- (CGFloat)labelHeight:(NSAttributedString *)attributedText //属性付きテキストを引数として渡している
+{
+    //　ラベルの高さ計算
+    CGFloat aHeight = [attributedText boundingRectWithSize:CGSizeMake(257, MAXFLOAT)
+                                                   options:NSStringDrawingUsesLineFragmentOrigin context:nil].size.height;
+    return aHeight;
+}
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
@@ -126,11 +136,11 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    // Retur
+    // Return the number of rows in the section.
     if (!self.timeLineData) { // レスポンス取得前はtimeLineDataがない
         return 1;
     } else {
-        return [self.timeLineData count];
+        return [self.timeLineData count]; //タイムラインの数を返り値として返す＝行数
     }
 }
 
@@ -143,40 +153,51 @@
     if (self.httpErrorMessage) { //重要
         cell.tweetTextLabel.text = @"HTTP Error!"; //httpエラー時はここにメッセージ表示
         cell.tweetTextLabelHeight = 24.0;
-    } else if (!self.timeLineData) { //レスポンス取得前はtimeLineDataがない
+    } else if (!self.timeLineData) { // レスポンスはあったが、まだタイムラインデータが取得できてない場合
         cell.tweetTextLabel.text = @"Loading...";
         cell.tweetTextLabelHeight = 24.0;
     } else {
-        NSString *tweetText = self.timeLineData[indexPath.row][@"text"];
-        cell.tweetTextLabel.text = tweetText;
-        cell.tweetTextLabelHeight = 50.0;
-        cell.nameLabel.text = self.timeLineData[indexPath.row][@"user"][@"screen_name"];
-        cell.profileImageView.image = [UIImage imageNamed:@"blank.png"];
+        NSString *tweetText = self.timeLineData[indexPath.row][@"text"]; // ツイート本文のセット
+        NSAttributedString *attributedTweetText = [self labelAttributedString:tweetText]; //ラベルの文字列を属性付き文字列に変換するメソッドの実行　引数としてtweetTextを渡している つまりツイート本文を属性付きテキストに変換して表示する作業
+        cell.tweetTextLabel.attributedText = attributedTweetText; // UILabelクラスにはattributedTextという属性に関係するオブジェクトがある 属性付きツイート本文をtweetTextLabelにセット
+        cell.nameLabel.text = self.timeLineData[indexPath.row][@"user"][@"screen_name"]; // 名前を取得したい... 取得したJSONタイムラインデータのuserの中のscreen_nameに入っているのでそれをnameLabel.textに貼り付けている
+        cell.profileImageView.image = [UIImage imageNamed:@"blank.png"]; //とりあえず空の画像をセット
+        cell.tweetTextLabelHeight = [self labelHeight:attributedTweetText]; // ラベルの高さ計算　属性付きツイート本文がセットされたtweetTextLabelを引数として渡し、ラベルの高さを求めるlabelHeightメソッドの実行
+        UIApplication *application =[UIApplication sharedApplication];
+        application.networkActivityIndicatorVisible = YES;
+        
         dispatch_async(self.image_Queue, ^{
             NSString *url;
-            NSDictionary *tweetDictionary = [self.timeLineData objectAtIndex:indexPath.row];
+            NSDictionary *tweetDictionary = self.timeLineData[indexPath.row]; //timeLineDataの何個目なのかをセット
             
-            if([[tweetDictionary allKeys] containsObject:@"retweeted_status"]) {
-                //リツイートの場合はretweeted_statusキー項目が存在する
-                url= tweetDictionary[@"retweeted_status"][@"user"][@"profile_image_url"];
+            if([[tweetDictionary allKeys] containsObject:@"retweeted_status"]) { //tweetDictionaryのすべてのキー項目の中にretweeted_statusが含まれていれば
+                url= tweetDictionary[@"retweeted_status"][@"user"][@"profile_image_url"]; //リツイートされた者のプロフィール画像ウRLを取得
             } else {
                 url = tweetDictionary[@"user"][@"profile_image_url"];
                 //通常は発言者のプロフィール画像URLを取得
             }
             NSData *data = [NSData dataWithContentsOfURL:[NSURL  URLWithString:url]];
-            //プロフィール画像取得
+            //プロフィール画像取得　裏で１００件分のイメージ取得の並列処理が行われる
             dispatch_async(self.main_Queue, ^{
                 UIApplication *application = [UIApplication sharedApplication];
-                application.networkActivityIndicatorVisible = NO;
+                application.networkActivityIndicatorVisible = NO; //ぐるぐるインジケータオフ
                 UIImage *image = [[UIImage alloc] initWithData:data];
                 cell.profileImageView.image = image;
-                [cell setNeedsLayout]; //せる書き換え
+                [cell setNeedsLayout]; //せるの再描画
             });
         });
                                                                
         
     }
     return cell;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSString *tweetText = self.timeLineData[indexPath.row][@"text"]; // つぶやき本文を取得したい...取得したタイムラインデータのtextに格納されているのでこれをtweetTextにセットしている
+    NSAttributedString *attributedTweetText = [self labelAttributedString:tweetText]; //取得した本文を引数として、属性付き本文に変えるメソッドの実行
+    CGFloat tweetTextLabelHeight = [self labelHeight:attributedTweetText]; //上で実行されて返り値として返ってきた属性付き本文attributedTweetTextを引数として渡し、ラベルの高さを計算するメソッドの実行
+    return tweetTextLabelHeight + 35; // セルのツイート本文ラベル以外の高さが合計で３５ピクセル
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
