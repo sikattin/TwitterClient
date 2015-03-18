@@ -35,8 +35,8 @@
     self.nameview.text = self.name;
     self.textview.text = self.text;
     self.popup.textColor = [UIColor redColor];
-    
 }
+
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
@@ -64,6 +64,8 @@
     UIApplication *application = [UIApplication sharedApplication];
     application.networkActivityIndicatorVisible = YES;
     
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Twitter Client" message:@"" delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil, nil]; //アラートビューの生成
+    
     [request performRequestWithHandler:^(NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error) {
         if (responseData) {
             self.httpErrorMessage = nil;
@@ -72,14 +74,18 @@
                 [NSJSONSerialization JSONObjectWithData:responseData options:NSJSONReadingMutableContainers error:NULL];
                 NSLog(@"SUCCESS! Created Retweet with ID: %@", postResponseData[@"id_str"]);
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.popup.text = @"Success";
+                    alert.message = @"リツイート成功！";
+                    [alert show];
+                    //self.popup.text = @"Success";
                 });
             } else { //HTTPエラー発生時
                 self.httpErrorMessage = [NSString stringWithFormat:@"The response status code is %ld", (long)urlResponse.statusCode];
                 NSLog(@"HTTPError: %@",self.httpErrorMessage);
                 //リツイート時のHTTPエラーメッセイジを画面に表示する領域を作る
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    self.popup.text = @"Failed";
+                    //self.popup.text = @"Failed";
+                    alert.message = @"HTTP Error! リツイート失敗...";
+                    [alert show];
                 });
             } /*else {
             NSLog(@"ERROR! : An error occurred while position: %@", [error localizedDescription]);
@@ -88,8 +94,9 @@
             dispatch_async(dispatch_get_main_queue(), ^{
             UIApplication *application = [UIApplication sharedApplication];
             application.networkActivityIndicatorVisible = NO;
-            self.popup.textColor = [UIColor redColor];
-            self.popup.text = @"Success";
+                NSLog(@"URL: %@",[url absoluteURL]);
+            //self.popup.textColor = [UIColor redColor];
+            //self.popup.text = @"Success";
             });
     };
 }];

@@ -17,6 +17,6 @@
 @property (nonatomic, readwrite, strong) NSString *name;
 @property (nonatomic, readwrite, strong) NSString *text;
 @property (nonatomic, copy) NSString *identifier;
-@property (nonatomic, copy) NSString *idStr;
+@property (nonatomic, copy) NSString *idStr; //つぶやきの個数が入ってる
 
 @end
